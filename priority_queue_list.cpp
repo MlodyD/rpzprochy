@@ -23,38 +23,64 @@ void qlist(pqueue* head, void (*print_data)(void*))
 
 void qinsert(pqueue** phead, void* data, int k)
 {
-	
+
 	if ((*phead) == NULL) // pusta kolejka
 	{
 		pqueue* wsk = (pqueue*)malloc(sizeof(pqueue));
 		wsk->data = data;
+		wsk->k = k;
 		wsk->prev = NULL;
 		wsk->next = NULL;
+		*phead = wsk;
 	}
-	else if ((*phead)->next == NULL) // nastepny element to null
+	else if ((*phead)->next == NULL) // nastepny element to null, phead nie jest null
 	{
 		pqueue* wsk = (pqueue*)malloc(sizeof(pqueue));
 		wsk->data = data;
-		(*phead)->next = wsk;
-		wsk->next = NULL;
+		wsk->k = k;
+		if ((*phead)->k < k) {
+			(*phead)->next = wsk;
+			wsk->next = NULL;
+			wsk->prev = (*phead);
+		}
+		else {
+			if ((*phead)->prev != NULL)
+			{
+				(*phead)->prev->next = wsk;
+				wsk->prev = (*phead)->prev;
+				wsk->next = (*phead);
+				(*phead)->prev = wsk;
+			}
+			else {
+				(*phead)->prev = wsk;
+				wsk->next = (*phead);
+				wsk->prev = NULL;
+				*phead = wsk;
+			}
+		}
 	}
-	else if ((*phead)->k < k)
+	else if ((*phead)->k > k)
 	{ // nie pusta kolejka ale nie jest to ostatni element
 		pqueue* wsk = (pqueue*)malloc(sizeof(pqueue));
 		wsk->data = data;
+		wsk->k = k;
 		wsk->next = (*phead)->next;
 		wsk->prev = (*phead);
 		(*phead)->next = wsk;
 	}
 	else {
-		qinsert((*phead)->next, data, k);
+		qinsert(&((*phead)->next), data, k);
 	}
-		
+
 }
 
 void qremove(pqueue** phead, int k)
 {
-	if (k == (*phead)->k) // znalezlismy co szukalismy
+	if ((*phead) == NULL)
+	{
+
+	}
+	else if (k == (*phead)->k) // znalezlismy co szukalismy
 	{
 		if ((*phead)->next != NULL)
 		{										   // istnieje nastepny element
@@ -62,11 +88,18 @@ void qremove(pqueue** phead, int k)
 		}
 		if ((*phead)->prev != NULL) // istnieje wczesniejszy element
 		{
-			(*phead)->prev->next = (*phead)->next; // poprzedniemu zapisujemy ze nastepny jest nastepnym
+			if ((*phead)->next != NULL) {
+				(*phead)->prev->next = (*phead)->next; // poprzedniemu zapisujemy ze nastepny jest nastepnym
+			}
+			else ((*phead)->prev)->next = NULL;
+			free(*phead);
 		}
-		free(phead);
+		else {
+			(*phead) = (*phead)->next;
+			free((*phead)->prev);
+		}
 	}
 	else {
-		qremove(pqueue * *phead, int k)
+		qremove(&((*phead)->next), k);
 	}
 }
